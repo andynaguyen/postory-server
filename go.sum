@@ -1,0 +1,4 @@
+github.com/coldbrewcloud/go-shippo v1.5.0 h1:/uiXn2btzm2JrUIWSI/I9AlGnEH+VVbvdiwKDZnUZ1s=
+github.com/coldbrewcloud/go-shippo v1.5.0/go.mod h1:URSxayrGQYT3v2mwUkOawH7LSc94RNp0836ytgpGryE=
+github.com/go-chi/chi v4.0.2+incompatible h1:maB6vn6FqCxrpz4FqWdh4+lwpyZIQS7YEAUcHlgXVRs=
+github.com/go-chi/chi v4.0.2+incompatible/go.mod h1:eB3wogJHnLi3x/kFX2A+IbTBlXxmMeXJVKy9tTv1XzQ=
