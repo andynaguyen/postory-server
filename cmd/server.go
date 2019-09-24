@@ -5,10 +5,17 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/andynaguyen/postory-server"
+	postory "github.com/andynaguyen/postory-server"
 	"github.com/coldbrewcloud/go-shippo"
 	"github.com/go-chi/chi"
 )
+
+func enableCorsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		next.ServeHTTP(w, r)
+	})
+}
 
 func main() {
 	shippoToken := os.Getenv("SHIPPO_TOKEN")
@@ -17,9 +24,12 @@ func main() {
 	}
 
 	shippoClient := shippo.NewClient(shippoToken)
-	api := postory_server.PostoryApi{shippoClient}
+	shippoProxy := postory.ShippoAdapter{shippoClient}
+	api := postory.Postory{shippoProxy}
 
 	router := chi.NewRouter()
-	router.Get("/track/{carrier}/{trackingNumber}", api.TrackHandler())
+	router.Use(enableCorsMiddleware)
+	router.Get("/tracking_info/{carrier}/{trackingNumber}", api.TrackingInfoHandler())
+	router.Get("/tracking_info_history/{carrier}/{trackingNumber}", api.TrackingInfoHistoryHandler())
 	http.ListenAndServe(":3000", router)
 }

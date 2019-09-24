@@ -1,4 +1,4 @@
-package carriers
+package postory_server
 
 var carrierTokensByName = map[string]string{
 	"apc_postal":        "APC Postal",
@@ -52,7 +52,7 @@ var carrierTokensByName = map[string]string{
 	"yodel":             "Yodel",
 }
 
-func IsSupported(carrierString string) bool {
+func isCarrierSupported(carrierString string) bool {
 	_, ok := carrierTokensByName[carrierString]
 	return ok
 }

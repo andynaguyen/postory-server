@@ -2,35 +2,49 @@ package postory_server
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
+	"time"
 
-	"github.com/andynaguyen/postory-server/carriers"
-	"github.com/coldbrewcloud/go-shippo/client"
 	"github.com/coldbrewcloud/go-shippo/models"
 	"github.com/go-chi/chi"
 )
 
-type TrackedPackage struct {
-	Error      *string                `json:"error"`
-	StatusCode int                    `json:"status_code"`
-	Data       *models.TrackingStatus `json:"data"`
+type TrackingInfo struct {
+	AddressFrom    *models.TrackingStatusLocation `json:"address_from,omitempty"`
+	AddressTo      *models.TrackingStatusLocation `json:"address_from,omitempty"`
+	ETA            time.Time                      `json:"eta"`
+	ServiceLevel   *models.ServiceLevel           `json:"servicelevel,omitempty"`
+	TrackingStatus *models.TrackingStatusDict     `json:"tracking_status,omitempty"`
 }
 
-type PostoryApi struct {
-	ShippoClient *client.Client
+type TrackingInfoResponse struct {
+	Error      *string       `json:"error"`
+	StatusCode int           `json:"status_code"`
+	Data       *TrackingInfo `json:"data"`
 }
 
-func (p PostoryApi) TrackHandler() http.HandlerFunc {
+type TrackingInfoHistoryResponse struct {
+	Error      *string                      `json:"error"`
+	StatusCode int                          `json:"status_code"`
+	Data       []*models.TrackingStatusDict `json:"tracking_history"`
+}
+
+type PackageTrackingClient interface {
+	GetTrackingUpdate(string, string) (*models.TrackingStatus, error)
+}
+
+type Postory struct {
+	Adapter TrackingAdapter
+}
+
+func (p Postory) TrackingInfoHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-
 		trackingNumber := chi.URLParam(r, "trackingNumber")
 		carrier := chi.URLParam(r, "carrier")
-		trackedPackage := p.getTrackedPackage(carrier, trackingNumber)
-		w.WriteHeader(trackedPackage.StatusCode)
+		trackingInfo := p.Adapter.GetTrackingInfo(carrier, trackingNumber)
+		w.WriteHeader(trackingInfo.StatusCode)
 
-		bytes, err := json.Marshal(trackedPackage)
+		bytes, err := json.Marshal(trackingInfo)
 		if err != nil {
 			println(err.Error())
 		}
@@ -38,17 +52,17 @@ func (p PostoryApi) TrackHandler() http.HandlerFunc {
 	}
 }
 
-func (p PostoryApi) getTrackedPackage(carrier string, trackingNumber string) TrackedPackage {
-	if !carriers.IsSupported(carrier) {
-		msg := fmt.Sprintf("carrier is unsupported: %s", carrier)
-		return TrackedPackage{&msg, http.StatusBadRequest, nil}
-	}
+func (p Postory) TrackingInfoHistoryHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		trackingNumber := chi.URLParam(r, "trackingNumber")
+		carrier := chi.URLParam(r, "carrier")
+		trackingInfoHistory := p.Adapter.GetTrackingInfoHistory(carrier, trackingNumber)
+		w.WriteHeader(trackingInfoHistory.StatusCode)
 
-	trackingStatus, err := p.ShippoClient.GetTrackingUpdate(carrier, trackingNumber)
-	if err != nil {
-		msg := fmt.Sprintf("could not get tracking update for carrier [%s] and tracking number [%s]\n", carrier, trackingNumber)
-		return TrackedPackage{&msg, http.StatusInternalServerError, trackingStatus}
+		bytes, err := json.Marshal(trackingInfoHistory)
+		if err != nil {
+			println(err.Error())
+		}
+		w.Write(bytes)
 	}
-
-	return TrackedPackage{nil, http.StatusOK, trackingStatus}
 }
