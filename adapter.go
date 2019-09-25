@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/coldbrewcloud/go-shippo"
 	"github.com/coldbrewcloud/go-shippo/client"
 )
 
@@ -14,6 +15,10 @@ type TrackingAdapter interface {
 
 type ShippoAdapter struct {
 	*client.Client
+}
+
+func NewShippoAdapter(token string) ShippoAdapter {
+	return ShippoAdapter{shippo.NewClient(token)}
 }
 
 func (adapter ShippoAdapter) GetTrackingInfo(carrier string, trackingNumber string) TrackingInfoResponse {

@@ -1,12 +1,8 @@
-package main
+package postory_server
 
 import (
-	"errors"
 	"net/http"
-	"os"
 
-	postory "github.com/andynaguyen/postory-server"
-	"github.com/coldbrewcloud/go-shippo"
 	"github.com/go-chi/chi"
 )
 
@@ -17,15 +13,13 @@ func enableCorsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func main() {
-	shippoToken := os.Getenv("SHIPPO_TOKEN")
-	if shippoToken == "" {
-		panic(errors.New("please set $SHIPPO_TOKEN with your Shippo API private token"))
-	}
+type ServerConfig struct {
+	ShippoToken string
+}
 
-	shippoClient := shippo.NewClient(shippoToken)
-	shippoProxy := postory.ShippoAdapter{shippoClient}
-	api := postory.Postory{shippoProxy}
+func StartServer(config *ServerConfig) {
+	shippoAdapter := NewShippoAdapter(config.ShippoToken)
+	api := Postory{shippoAdapter}
 
 	router := chi.NewRouter()
 	router.Use(enableCorsMiddleware)
