@@ -50,6 +50,7 @@ var carrierTokensByName = map[string]string{
 	"ups":               "UPS",
 	"usps":              "USPS",
 	"yodel":             "Yodel",
+	"shippo":            "Shippo", // Shippo is used for test mode
 }
 
 func isCarrierSupported(carrierString string) bool {

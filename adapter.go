@@ -3,10 +3,32 @@ package postory_server
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/coldbrewcloud/go-shippo"
 	"github.com/coldbrewcloud/go-shippo/client"
+	"github.com/coldbrewcloud/go-shippo/models"
 )
+
+type TrackingInfo struct {
+	AddressFrom    *models.TrackingStatusLocation `json:"address_from,omitempty"`
+	AddressTo      *models.TrackingStatusLocation `json:"address_from,omitempty"`
+	ETA            time.Time                      `json:"eta"`
+	ServiceLevel   *models.ServiceLevel           `json:"servicelevel,omitempty"`
+	TrackingStatus *models.TrackingStatusDict     `json:"tracking_status,omitempty"`
+}
+
+type TrackingInfoResponse struct {
+	Error      *string       `json:"error"`
+	StatusCode int           `json:"status_code"`
+	Data       *TrackingInfo `json:"data"`
+}
+
+type TrackingInfoHistoryResponse struct {
+	Error      *string                      `json:"error"`
+	StatusCode int                          `json:"status_code"`
+	Data       []*models.TrackingStatusDict `json:"tracking_history"`
+}
 
 type TrackingAdapter interface {
 	GetTrackingInfo(string, string) TrackingInfoResponse
@@ -14,7 +36,7 @@ type TrackingAdapter interface {
 }
 
 type ShippoAdapter struct {
-	*client.Client
+	cl *client.Client
 }
 
 func NewShippoAdapter(token string) ShippoAdapter {
@@ -27,9 +49,9 @@ func (adapter ShippoAdapter) GetTrackingInfo(carrier string, trackingNumber stri
 		return TrackingInfoResponse{&msg, http.StatusBadRequest, nil}
 	}
 
-	trackingStatus, err := adapter.GetTrackingUpdate(carrier, trackingNumber)
+	trackingStatus, err := adapter.cl.GetTrackingUpdate(carrier, trackingNumber)
 	if err != nil {
-		msg := fmt.Sprintf("could not get tracking update for carrier [%s] and tracking number [%s]\n", carrier, trackingNumber)
+		msg := fmt.Sprintf("could not get tracking update for carrier \"%s\" and tracking number \"%s\"", carrierTokensByName[carrier], trackingNumber)
 		return TrackingInfoResponse{&msg, http.StatusInternalServerError, nil}
 	}
 
@@ -48,9 +70,9 @@ func (adapter ShippoAdapter) GetTrackingInfoHistory(carrier string, trackingNumb
 		return TrackingInfoHistoryResponse{&msg, http.StatusBadRequest, nil}
 	}
 
-	trackingStatus, err := adapter.GetTrackingUpdate(carrier, trackingNumber)
+	trackingStatus, err := adapter.cl.GetTrackingUpdate(carrier, trackingNumber)
 	if err != nil {
-		msg := fmt.Sprintf("could not get tracking update for carrier [%s] and tracking number [%s]\n", carrier, trackingNumber)
+		msg := fmt.Sprintf("could not get tracking update for carrier \"%s\" and tracking number \"%s\"", carrierTokensByName[carrier], trackingNumber)
 		return TrackingInfoHistoryResponse{&msg, http.StatusInternalServerError, nil}
 	}
 
