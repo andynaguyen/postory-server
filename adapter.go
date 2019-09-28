@@ -1,6 +1,7 @@
 package postory_server
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -19,15 +20,17 @@ type TrackingInfo struct {
 }
 
 type TrackingInfoResponse struct {
-	Error      *string       `json:"error"`
+	Error      error         `json:"error"`
 	StatusCode int           `json:"status_code"`
 	Data       *TrackingInfo `json:"data"`
 }
 
+type TrackingInfoHistory []*models.TrackingStatusDict
+
 type TrackingInfoHistoryResponse struct {
-	Error      *string                      `json:"error"`
-	StatusCode int                          `json:"status_code"`
-	Data       []*models.TrackingStatusDict `json:"tracking_history"`
+	Error      error               `json:"error"`
+	StatusCode int                 `json:"status_code"`
+	Data       TrackingInfoHistory `json:"tracking_history"`
 }
 
 type TrackingAdapter interface {
@@ -46,13 +49,13 @@ func NewShippoAdapter(token string) ShippoAdapter {
 func (adapter ShippoAdapter) GetTrackingInfo(carrier string, trackingNumber string) TrackingInfoResponse {
 	if !isCarrierSupported(carrier) {
 		msg := fmt.Sprintf("carrier is unsupported: %s", carrier)
-		return TrackingInfoResponse{&msg, http.StatusBadRequest, nil}
+		return TrackingInfoResponse{errors.New(msg), http.StatusBadRequest, nil}
 	}
 
 	trackingStatus, err := adapter.cl.GetTrackingUpdate(carrier, trackingNumber)
 	if err != nil {
 		msg := fmt.Sprintf("could not get tracking update for carrier \"%s\" and tracking number \"%s\"", carrierTokensByName[carrier], trackingNumber)
-		return TrackingInfoResponse{&msg, http.StatusInternalServerError, nil}
+		return TrackingInfoResponse{errors.New(msg), http.StatusInternalServerError, nil}
 	}
 
 	return TrackingInfoResponse{nil, http.StatusOK, &TrackingInfo{
@@ -67,13 +70,13 @@ func (adapter ShippoAdapter) GetTrackingInfo(carrier string, trackingNumber stri
 func (adapter ShippoAdapter) GetTrackingInfoHistory(carrier string, trackingNumber string) TrackingInfoHistoryResponse {
 	if !isCarrierSupported(carrier) {
 		msg := fmt.Sprintf("carrier is unsupported: %s", carrier)
-		return TrackingInfoHistoryResponse{&msg, http.StatusBadRequest, nil}
+		return TrackingInfoHistoryResponse{errors.New(msg), http.StatusBadRequest, nil}
 	}
 
 	trackingStatus, err := adapter.cl.GetTrackingUpdate(carrier, trackingNumber)
 	if err != nil {
 		msg := fmt.Sprintf("could not get tracking update for carrier \"%s\" and tracking number \"%s\"", carrierTokensByName[carrier], trackingNumber)
-		return TrackingInfoHistoryResponse{&msg, http.StatusInternalServerError, nil}
+		return TrackingInfoHistoryResponse{errors.New(msg), http.StatusInternalServerError, nil}
 	}
 
 	return TrackingInfoHistoryResponse{nil, http.StatusOK, trackingStatus.TrackingHistory}

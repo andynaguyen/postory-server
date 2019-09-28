@@ -87,14 +87,14 @@ func TestShippoAdapter_GetTrackingInfo_UnsupportedCarrier(t *testing.T) {
 	resp := adapter.GetTrackingInfo("", "")
 
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-	assert.NotNil(t, resp.Error)
+	assert.Error(t, resp.Error)
 }
 
 func TestShippoAdapter_GetTrackingInfo_ShippoError(t *testing.T) {
 	resp := adapter.GetTrackingInfo(ShippoCarrier, "")
 
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
-	assert.NotNil(t, resp.Error)
+	assert.Error(t, resp.Error)
 }
 
 func TestShippoAdapter_GetTrackingInfoHistory_PreTransit(t *testing.T) {
@@ -133,12 +133,12 @@ func TestShippoAdapter_GetTrackingInfoHistory_UnsupportedCarrier(t *testing.T) {
 	resp := adapter.GetTrackingInfoHistory("", "")
 
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-	assert.NotNil(t, resp.Error)
+	assert.Error(t, resp.Error)
 }
 
 func TestShippoAdapter_GetTrackingInfoHistory_ShippoError(t *testing.T) {
 	resp := adapter.GetTrackingInfoHistory(ShippoCarrier, "")
 
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
-	assert.NotNil(t, resp.Error)
+	assert.Error(t, resp.Error)
 }

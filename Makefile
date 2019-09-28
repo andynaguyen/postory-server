@@ -1,12 +1,50 @@
-run:
-	go run cmd/run.go
+.PHONY: build
 
+BucketName = 'sam-postory-deploy-bucket'
+TestShippoToken = ''
+LiveShippoToken =  ''
+
+# build lambda handlers
+build:
+	GOOS=linux GOARCH=amd64 go build -o ./build/track handler/track/main.go
+	GOOS=linux GOARCH=amd64 go build -o ./build/history handler/history/main.go
+
+# start local server using test shippo API
+local:
+	make build
+	sam local start-api --parameter-overrides 'ParameterKey=ShippoToken,ParameterValue=$(TestShippoToken)' --host localhost
+
+# start local server using live shippo API
+local-live:
+	make build
+	sam local start-api --parameter-overrides 'ParameterKey=ShippoToken,ParameterValue=$(LiveShippoToken)' --host localhost
+
+# clean build artifacts
+clean:
+	rm -rf ./build
+
+# run unit tests
 test:
-	make test-unit
+	go test ./... -v
+
+# run integration tests
+test-integration:
+	SHIPPO_TOKEN=$(TestShippoToken) go test ./... -tags=integration -v
+
+# run all tests
+test-all:
+	make test
 	make test-integration
 
-test-integration:
-	go test ./... -tags=integration -v
-
-test-unit:
-	go test ./... -v
+# deploy to aws
+deploy:
+	make build
+	sam package \
+		--template-file template.yaml \
+		--output-template-file build/packaged-template.yml \
+		--s3-bucket $(BucketName)
+	sam deploy \
+		--template-file build/packaged-template.yml \
+		--stack-name postory \
+		--capabilities CAPABILITY_IAM \
+		--parameter-overrides 'ShippoToken=$(LiveShippoToken)'

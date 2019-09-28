@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: CloudFormation stack for Postory
+
+Parameters:
+  ShippoToken:
+    Type: String
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Runtime: go1.x
+    MemorySize: 128
+    Environment:
+      Variables:
+        SHIPPO_TOKEN: !Ref ShippoToken
+
+Resources:
+  Track:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: track
+      Handler: ./build/track
+      Timeout: 15
+      Events:
+        TrackApi:
+          Type: Api
+          Properties:
+            Path: /track
+            Method: GET
+
+  History:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: history
+      Handler: ./build/history
+      Timeout: 15
+      Events:
+        HistoryApi:
+          Type: Api
+          Properties:
+            Path: /history
+            Method: GET
