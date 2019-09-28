@@ -3,7 +3,6 @@
 package postory_server
 
 import (
-	"net/http"
 	"os"
 	"testing"
 
@@ -24,12 +23,9 @@ var shippoToken = os.Getenv("SHIPPO_TOKEN")
 var adapter = NewShippoAdapter(shippoToken)
 
 func TestShippoAdapter_GetTrackingInfo_Transit(t *testing.T) {
-	resp := adapter.GetTrackingInfo(ShippoCarrier, ShippoTransit)
+	data, err := adapter.GetTrackingInfo(ShippoCarrier, ShippoTransit)
 
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.Nil(t, resp.Error)
-
-	data := resp.Data
+	assert.Nil(t, err)
 	assert.Nil(t, data.AddressFrom)
 	assert.Nil(t, data.AddressTo)
 	assert.Equal(t, "Priority Mail", data.ServiceLevel.Name)
@@ -44,12 +40,9 @@ func TestShippoAdapter_GetTrackingInfo_Transit(t *testing.T) {
 }
 
 func TestShippoAdapter_GetTrackingInfo_Delivered(t *testing.T) {
-	resp := adapter.GetTrackingInfo(ShippoCarrier, ShippoDelivered)
+	data, err := adapter.GetTrackingInfo(ShippoCarrier, ShippoDelivered)
 
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.Nil(t, resp.Error)
-
-	data := resp.Data
+	assert.Nil(t, err)
 	assert.Nil(t, data.AddressFrom)
 	assert.Nil(t, data.AddressTo)
 	assert.Equal(t, "Priority Mail", data.ServiceLevel.Name)
@@ -64,12 +57,9 @@ func TestShippoAdapter_GetTrackingInfo_Delivered(t *testing.T) {
 }
 
 func TestShippoAdapter_GetTrackingInfo_Failure(t *testing.T) {
-	resp := adapter.GetTrackingInfo(ShippoCarrier, ShippoFailure)
+	data, err := adapter.GetTrackingInfo(ShippoCarrier, ShippoFailure)
 
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.Nil(t, resp.Error)
-
-	data := resp.Data
+	assert.Nil(t, err)
 	assert.Nil(t, data.AddressFrom)
 	assert.Nil(t, data.AddressTo)
 	assert.Equal(t, "Priority Mail", data.ServiceLevel.Name)
@@ -84,37 +74,29 @@ func TestShippoAdapter_GetTrackingInfo_Failure(t *testing.T) {
 }
 
 func TestShippoAdapter_GetTrackingInfo_UnsupportedCarrier(t *testing.T) {
-	resp := adapter.GetTrackingInfo("", "")
+	_, err := adapter.GetTrackingInfo("", "")
 
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-	assert.Error(t, resp.Error)
+	assert.Error(t, err)
 }
 
 func TestShippoAdapter_GetTrackingInfo_ShippoError(t *testing.T) {
-	resp := adapter.GetTrackingInfo(ShippoCarrier, "")
+	_, err := adapter.GetTrackingInfo(ShippoCarrier, "")
 
-	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
-	assert.Error(t, resp.Error)
+	assert.Error(t, err)
 }
 
 func TestShippoAdapter_GetTrackingInfoHistory_PreTransit(t *testing.T) {
-	resp := adapter.GetTrackingInfoHistory(ShippoCarrier, ShippoPreTransit)
+	data, err := adapter.GetTrackingInfoHistory(ShippoCarrier, ShippoPreTransit)
 
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.Nil(t, resp.Error)
-
-	assert.Empty(t, resp.Data)
+	assert.Nil(t, err)
+	assert.Empty(t, data)
 }
 
 func TestShippoAdapter_GetTrackingInfoHistory_Transit(t *testing.T) {
-	resp := adapter.GetTrackingInfoHistory(ShippoCarrier, ShippoTransit)
+	data, err := adapter.GetTrackingInfoHistory(ShippoCarrier, ShippoTransit)
 
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.Nil(t, resp.Error)
-
-	data := resp.Data
+	assert.Nil(t, err)
 	assert.Len(t, data, 2)
-
 	assert.Equal(t, "UNKNOWN", data[0].Status)
 	assert.Equal(t, "The carrier has received the electronic shipment information.", data[0].StatusDetails)
 	assert.Equal(t, "San Francisco", data[0].Location.City)
@@ -130,15 +112,13 @@ func TestShippoAdapter_GetTrackingInfoHistory_Transit(t *testing.T) {
 }
 
 func TestShippoAdapter_GetTrackingInfoHistory_UnsupportedCarrier(t *testing.T) {
-	resp := adapter.GetTrackingInfoHistory("", "")
+	_, err := adapter.GetTrackingInfoHistory("", "")
 
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-	assert.Error(t, resp.Error)
+	assert.Error(t, err)
 }
 
 func TestShippoAdapter_GetTrackingInfoHistory_ShippoError(t *testing.T) {
-	resp := adapter.GetTrackingInfoHistory(ShippoCarrier, "")
+	_, err := adapter.GetTrackingInfoHistory(ShippoCarrier, "")
 
-	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
-	assert.Error(t, resp.Error)
+	assert.Error(t, err)
 }

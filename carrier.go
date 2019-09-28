@@ -53,7 +53,7 @@ var carrierTokensByName = map[string]string{
 	"shippo":            "Shippo", // Shippo is used for test mode
 }
 
-func isCarrierSupported(carrierString string) bool {
+func IsCarrierSupported(carrierString string) bool {
 	_, ok := carrierTokensByName[carrierString]
 	return ok
 }

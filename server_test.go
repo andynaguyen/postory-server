@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/coldbrewcloud/go-shippo/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,7 +34,7 @@ func TestServer_TrackingInfoHistory(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	var trackingInfoHistory TrackingInfoHistory
+	var trackingInfoHistory []*models.TrackingStatusDict
 	json.NewDecoder(resp.Body).Decode(&trackingInfoHistory)
 	assert.Len(t, trackingInfoHistory, 2)
 	assert.Equal(t, "UNKNOWN", trackingInfoHistory[0].Status)

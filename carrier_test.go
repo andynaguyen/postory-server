@@ -20,7 +20,7 @@ func TestIsSupported(t *testing.T) {
 	}
 
 	for _, tc := range testcases {
-		actual := isCarrierSupported(tc.carrierString)
+		actual := IsCarrierSupported(tc.carrierString)
 		assert.Equal(t, tc.expected, actual)
 	}
 }
