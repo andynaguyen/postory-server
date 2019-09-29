@@ -11,6 +11,7 @@ Globals:
   Function:
     Runtime: go1.x
     MemorySize: 128
+    Timeout: 15
     Environment:
       Variables:
         SHIPPO_TOKEN: !Ref ShippoToken
@@ -21,23 +22,40 @@ Resources:
     Properties:
       FunctionName: track
       Handler: ./build/track
-      Timeout: 15
       Events:
         TrackApi:
           Type: Api
           Properties:
             Path: /track
             Method: GET
+      Policies:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:PutItem
+              - dynamodb:GetItem
+            Resource: !GetAtt [Archive, Arn]
 
   History:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: history
       Handler: ./build/history
-      Timeout: 15
       Events:
         HistoryApi:
           Type: Api
           Properties:
             Path: /history
             Method: GET
+
+  Archive:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: archive
+      PrimaryKey:
+        Name: Id
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5

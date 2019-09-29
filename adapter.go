@@ -11,11 +11,11 @@ import (
 )
 
 type TrackingInfo struct {
-	AddressFrom    *models.TrackingStatusLocation `json:"address_from,omitempty"`
-	AddressTo      *models.TrackingStatusLocation `json:"address_from,omitempty"`
+	AddressFrom    *models.TrackingStatusLocation `json:"address_from"`
+	AddressTo      *models.TrackingStatusLocation `json:"address_to"`
 	ETA            time.Time                      `json:"eta"`
-	ServiceLevel   *models.ServiceLevel           `json:"servicelevel,omitempty"`
-	TrackingStatus *models.TrackingStatusDict     `json:"tracking_status,omitempty"`
+	ServiceLevel   *models.ServiceLevel           `json:"servicelevel"`
+	TrackingStatus *models.TrackingStatusDict     `json:"tracking_status"`
 }
 
 type ShippoAdapter struct {

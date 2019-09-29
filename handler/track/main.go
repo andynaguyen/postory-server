@@ -9,10 +9,12 @@ import (
 	"github.com/andynaguyen/postory-server/handler"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/coldbrewcloud/go-shippo/models"
 )
 
 var shippoToken = os.Getenv("SHIPPO_TOKEN")
 var shippoAdapter = postory.NewShippoAdapter(shippoToken)
+var archiveDao = postory.NewArchiveDao()
 
 func handle(event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	response := events.APIGatewayProxyResponse{
@@ -23,22 +25,41 @@ func handle(event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse
 
 	carrier := event.QueryStringParameters["carrier"]
 	trackingNumber := event.QueryStringParameters["trackingNumber"]
-	if err := handler.ValidateInput(carrier); err != nil {
+	err := handler.ValidateInput(carrier)
+	if err != nil {
 		println(err.Error())
 		response.StatusCode = http.StatusBadRequest
 		return response, err
 	}
 
-	trackingInfo, err := shippoAdapter.GetTrackingInfo(carrier, trackingNumber)
+	// check archive first, otherwise call shippo
+	trackingInfo := archiveDao.GetArchivedInfo(carrier, trackingNumber)
+	if trackingInfo == nil {
+		println("not found in archive, callling shippo")
+		trackingInfo, err = shippoAdapter.GetTrackingInfo(carrier, trackingNumber)
+		if err != nil {
+			println(err.Error())
+			response.StatusCode = http.StatusInternalServerError
+			return response, err
+		}
+	}
+
+	// If terminal status, archive the tracking info
+	if trackingInfo.TrackingStatus.Status == models.TrackingStatusStatusDelivered ||
+		trackingInfo.TrackingStatus.Status == models.TrackingStatusStatusFailure ||
+		trackingInfo.TrackingStatus.Status == models.TrackingStatusStatusReturned {
+		if err = archiveDao.PutArchivedInfo(carrier, trackingNumber, *trackingInfo); err != nil {
+			println(err.Error())
+		}
+	}
+
 	bodyBytes, err := json.Marshal(trackingInfo)
 	if err != nil {
-		println(err.Error())
 		response.StatusCode = http.StatusInternalServerError
 		return response, err
 	}
-
-	response.StatusCode = http.StatusOK
 	response.Body = string(bodyBytes)
+	response.StatusCode = http.StatusOK
 	return response, nil
 }
 
