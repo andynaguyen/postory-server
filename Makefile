@@ -1,8 +1,7 @@
 .PHONY: build
 
-BucketName = 'sam-postory-deploy-bucket'
+BucketName = sam-postory-deploy-bucket
 TestShippoToken = ''
-LiveShippoToken =  ''
 
 # build lambda handlers
 build:
@@ -12,12 +11,7 @@ build:
 # start local server using test shippo API
 local:
 	make build
-	sam local start-api --parameter-overrides 'ParameterKey=ShippoToken,ParameterValue=$(TestShippoToken)' --host localhost
-
-# start local server using live shippo API
-local-live:
-	make build
-	sam local start-api --parameter-overrides 'ParameterKey=ShippoToken,ParameterValue=$(LiveShippoToken)' --host localhost
+	sam local start-api --host localhost
 
 # clean build artifacts
 clean:
@@ -47,4 +41,4 @@ deploy:
 		--template-file build/packaged-template.yml \
 		--stack-name postory \
 		--capabilities CAPABILITY_IAM \
-		--parameter-overrides 'ShippoToken=$(LiveShippoToken)'
+		--parameter-overrides 'Stage=prod'

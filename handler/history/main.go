@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"net/http"
-	"os"
 
 	postory "github.com/andynaguyen/postory-server"
 	"github.com/andynaguyen/postory-server/handler"
@@ -11,8 +10,8 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-var shippoToken = os.Getenv("SHIPPO_TOKEN")
-var shippoAdapter = postory.NewShippoAdapter(shippoToken)
+var shippoAdapter = postory.NewShippoAdapter()
+var logger = postory.NewLogger()
 
 func handle(event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	response := events.APIGatewayProxyResponse{
@@ -24,21 +23,27 @@ func handle(event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse
 	carrier := event.QueryStringParameters["carrier"]
 	trackingNumber := event.QueryStringParameters["trackingNumber"]
 	if err := handler.ValidateInput(carrier); err != nil {
-		println(err.Error())
+		logger.Error().Err(err).Msg("error validating input")
 		response.StatusCode = http.StatusBadRequest
 		return response, err
 	}
 
 	trackingInfoHistory, err := shippoAdapter.GetTrackingInfoHistory(carrier, trackingNumber)
-	bodyBytes, err := json.Marshal(trackingInfoHistory)
+	logger.Printf("returning tracking info history: %+v\n", trackingInfoHistory)
 	if err != nil {
-		println(err.Error())
+		logger.Error().Err(err).Msg("failed to get tracking info history")
 		response.StatusCode = http.StatusInternalServerError
 		return response, err
 	}
 
-	response.StatusCode = http.StatusOK
+	bodyBytes, err := json.Marshal(trackingInfoHistory)
+	if err != nil {
+		logger.Error().Err(err).Msg("error marshalling tracking info history")
+		response.StatusCode = http.StatusInternalServerError
+		return response, err
+	}
 	response.Body = string(bodyBytes)
+	response.StatusCode = http.StatusOK
 	return response, nil
 }
 

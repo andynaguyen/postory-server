@@ -3,7 +3,6 @@
 package postory_server
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -19,7 +18,6 @@ const (
 	ShippoUnknown    = "SHIPPO_UNKNOWN"
 )
 
-var shippoToken = os.Getenv("SHIPPO_TOKEN")
 var adapter = NewShippoAdapter(shippoToken)
 
 func TestShippoAdapter_GetTrackingInfo_Transit(t *testing.T) {

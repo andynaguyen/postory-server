@@ -3,6 +3,7 @@ package postory_server
 import (
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/coldbrewcloud/go-shippo"
@@ -22,8 +23,9 @@ type ShippoAdapter struct {
 	cl *client.Client
 }
 
-func NewShippoAdapter(token string) *ShippoAdapter {
-	return &ShippoAdapter{shippo.NewClient(token)}
+func NewShippoAdapter() *ShippoAdapter {
+	shippoToken := os.Getenv("SHIPPO_TOKEN")
+	return &ShippoAdapter{shippo.NewClient(shippoToken)}
 }
 
 func (adapter ShippoAdapter) GetTrackingInfo(carrier string, trackingNumber string) (*TrackingInfo, error) {

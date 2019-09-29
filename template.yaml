@@ -1,10 +1,18 @@
-AWSTemplateFormatVersion: "2010-09-09"
+AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
 Description: CloudFormation stack for Postory
 
 Parameters:
-  ShippoToken:
+  Stage:
     Type: String
+    Default: test
+
+Mappings:
+  Tokens:
+    prod:
+      Shippo: ''
+    test:
+      Shippo: ''
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
@@ -14,7 +22,8 @@ Globals:
     Timeout: 15
     Environment:
       Variables:
-        SHIPPO_TOKEN: !Ref ShippoToken
+        SHIPPO_TOKEN: !FindInMap [ Tokens, !Ref Stage, Shippo ]
+        STAGE: !Ref Stage
 
 Resources:
   Track:

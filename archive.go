@@ -12,23 +12,30 @@ type ArchiveItem struct {
 	TrackingInfo TrackingInfo
 }
 
-type ArchiveDao struct {
+type Archive struct {
 	svc *dynamodb.DynamoDB
 }
 
-func NewArchiveDao() *ArchiveDao {
+var logger = NewLogger()
+
+func NewArchive() *Archive {
 	sess, err := session.NewSession()
 	if err != nil {
-		println(err.Error())
+		logger.Error().Err(err).Msg("could not start aws session")
 		return nil
 	}
-	return &ArchiveDao{dynamodb.New(sess)}
+	return &Archive{dynamodb.New(sess)}
 }
 
 const TableName = "archive"
 
-func (dao ArchiveDao) GetArchivedInfo(carrier string, trackingNumber string) *TrackingInfo {
-	output, err := dao.svc.GetItem(&dynamodb.GetItemInput{
+func (a Archive) GetInfo(carrier string, trackingNumber string) *TrackingInfo {
+	log := logger.With().
+		Str("carrier", carrier).
+		Str("trackingNumber", trackingNumber).
+		Logger()
+
+	output, err := a.svc.GetItem(&dynamodb.GetItemInput{
 		TableName: aws.String(TableName),
 		Key: map[string]*dynamodb.AttributeValue{
 			"Id": {S: aws.String(getId(carrier, trackingNumber))},
@@ -36,38 +43,50 @@ func (dao ArchiveDao) GetArchivedInfo(carrier string, trackingNumber string) *Tr
 	})
 
 	if err != nil {
-		println(err.Error())
+		log.Error().Err(err).Msg("error getting from dynamodb table")
 		return nil
 	}
 	if len(output.Item) == 0 {
+		log.Info().
+			Str("carrier", carrier).
+			Str("trackingNumber", trackingNumber).
+			Msg("nothing in archive")
 		return nil
 	}
 
-	println("found archived tracking info")
+	log.Info().Msg("found archived tracking info")
 	item := &ArchiveItem{}
 	err = dynamodbattribute.UnmarshalMap(output.Item, item)
 	if err != nil {
-		println(err.Error())
+		log.Error().Err(err).Msg("failed to unmarshal item from dynamo attribute")
 		return nil
 	}
 	return &item.TrackingInfo
 }
 
-func (dao ArchiveDao) PutArchivedInfo(carrier string, trackingNumber string, info TrackingInfo) error {
+func (a Archive) PutInfo(carrier string, trackingNumber string, info TrackingInfo) {
+	log := logger.With().
+		Str("carrier", carrier).
+		Str("trackingNumber", trackingNumber).
+		Logger()
+
 	item := ArchiveItem{
 		Id:           getId(carrier, trackingNumber),
 		TrackingInfo: info,
 	}
 	av, err := dynamodbattribute.MarshalMap(item)
 	if err != nil {
-		return err
+		log.Error().Err(err).Msg("failed to marshal item to dynamo attribute")
+		return
 	}
 
-	_, err = dao.svc.PutItem(&dynamodb.PutItemInput{
+	_, err = a.svc.PutItem(&dynamodb.PutItemInput{
 		TableName: aws.String(TableName),
 		Item:      av,
 	})
-	return err
+	if err != nil {
+		log.Error().Err(err).Msg("error putting to dynamo table")
+	}
 }
 
 func getId(carrier string, trackingNumber string) string {
