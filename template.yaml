@@ -68,3 +68,131 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
+
+  TrackInvocationsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: track-invocations-alarm
+      AlarmDescription: Alarm for sum(invocations) of track API
+      AlarmActions:
+        - !Ref EmailTopic
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref Track
+      MetricName: Invocations
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 100
+      Unit: Count
+      EvaluationPeriods: 1
+      Period: 300
+      Statistic: Sum
+      TreatMissingData: notBreaching
+
+  TrackErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: track-errors-alarm
+      AlarmDescription: Alarm for sum(errors) of track API
+      AlarmActions:
+        - !Ref EmailTopic
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref Track
+      MetricName: Errors
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 5
+      Unit: Count
+      EvaluationPeriods: 1
+      Period: 300
+      Statistic: Sum
+      TreatMissingData: notBreaching
+
+  TrackDurationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: track-duration-alarm
+      AlarmDescription: Alarm for max(duration) of track API
+      AlarmActions:
+        - !Ref EmailTopic
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref Track
+      MetricName: Duration
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 10
+      Unit: Seconds
+      EvaluationPeriods: 1
+      Period: 300
+      Statistic: Maximum
+      TreatMissingData: notBreaching
+
+  HistoryInvocationsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: history-invocations-alarm
+      AlarmDescription: Alarm for sum(invocations) of history API
+      AlarmActions:
+        - !Ref EmailTopic
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref History
+      MetricName: Invocations
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 100
+      Unit: Count
+      EvaluationPeriods: 1
+      Period: 300
+      Statistic: Sum
+      TreatMissingData: notBreaching
+
+  HistoryErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: history-errors-alarm
+      AlarmDescription: Alarm for sum(errors) of history API
+      AlarmActions:
+        - !Ref EmailTopic
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref History
+      MetricName: Errors
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 5
+      Unit: Count
+      EvaluationPeriods: 1
+      Period: 300
+      Statistic: Sum
+      TreatMissingData: notBreaching
+
+  HistoryDurationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: history-duration-alarm
+      AlarmDescription: Alarm for max(duration) of history API
+      AlarmActions:
+        - !Ref EmailTopic
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref History
+      MetricName: Duration
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 10
+      Unit: Seconds
+      EvaluationPeriods: 1
+      Period: 300
+      Statistic: Maximum
+      TreatMissingData: notBreaching
+
+  EmailTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: email-topic
+      Subscription:
+        - Endpoint: andynguyenswe@gmail.com
+          Protocol: email
