@@ -22,13 +22,13 @@ test:
 	go test ./... -v
 
 # run integration tests
-test-integration:
+test-integ:
 	SHIPPO_TOKEN=$(TestShippoToken) go test ./... -tags=integration -v
 
 # run all tests
 test-all:
 	make test
-	make test-integration
+	make test-integ
 
 # deploy to aws
 deploy:
