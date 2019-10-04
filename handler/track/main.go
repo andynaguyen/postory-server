@@ -21,7 +21,6 @@ func handle(event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse
 			"Access-Control-Allow-Origin": "*",
 		},
 	}
-
 	carrier := event.QueryStringParameters["carrier"]
 	trackingNumber := event.QueryStringParameters["trackingNumber"]
 	err := handler.ValidateInput(carrier)
@@ -50,7 +49,7 @@ func handle(event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse
 			trackingInfo.TrackingStatus.Status == models.TrackingStatusStatusFailure ||
 			trackingInfo.TrackingStatus.Status == models.TrackingStatusStatusReturned
 		if isTerminal {
-			archive.PutInfo(carrier, trackingNumber, *trackingInfo)
+			archive.PutInfo(*trackingInfo)
 		}
 	}
 

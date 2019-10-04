@@ -12,10 +12,11 @@ import (
 )
 
 type TrackingInfo struct {
+	Carrier        string                         `json:"carrier"`
+	TrackingNumber string                         `json:"tracking_number"`
 	AddressFrom    *models.TrackingStatusLocation `json:"address_from"`
 	AddressTo      *models.TrackingStatusLocation `json:"address_to"`
 	ETA            time.Time                      `json:"eta"`
-	ServiceLevel   *models.ServiceLevel           `json:"servicelevel"`
 	TrackingStatus *models.TrackingStatusDict     `json:"tracking_status"`
 }
 
@@ -36,10 +37,11 @@ func (adapter ShippoAdapter) GetTrackingInfo(carrier string, trackingNumber stri
 	}
 
 	return &TrackingInfo{
+		Carrier:        carrier,
+		TrackingNumber: trackingNumber,
 		AddressFrom:    trackingStatus.AddressFrom,
 		AddressTo:      trackingStatus.AddressTo,
 		ETA:            trackingStatus.ETA,
-		ServiceLevel:   trackingStatus.ServiceLevel,
 		TrackingStatus: trackingStatus.TrackingStatus,
 	}, nil
 }

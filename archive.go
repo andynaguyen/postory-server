@@ -47,10 +47,7 @@ func (a Archive) GetInfo(carrier string, trackingNumber string) *TrackingInfo {
 		return nil
 	}
 	if len(output.Item) == 0 {
-		log.Info().
-			Str("carrier", carrier).
-			Str("trackingNumber", trackingNumber).
-			Msg("nothing in archive")
+		log.Info().Msg("nothing in archive")
 		return nil
 	}
 
@@ -64,14 +61,14 @@ func (a Archive) GetInfo(carrier string, trackingNumber string) *TrackingInfo {
 	return &item.TrackingInfo
 }
 
-func (a Archive) PutInfo(carrier string, trackingNumber string, info TrackingInfo) {
+func (a Archive) PutInfo(info TrackingInfo) {
 	log := logger.With().
-		Str("carrier", carrier).
-		Str("trackingNumber", trackingNumber).
+		Str("carrier", info.Carrier).
+		Str("trackingNumber", info.TrackingNumber).
 		Logger()
 
 	item := ArchiveItem{
-		Id:           getId(carrier, trackingNumber),
+		Id:           getId(info.Carrier, info.TrackingNumber),
 		TrackingInfo: info,
 	}
 	av, err := dynamodbattribute.MarshalMap(item)

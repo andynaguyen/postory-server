@@ -18,6 +18,8 @@ func TestServer_TrackingInfo(t *testing.T) {
 
 	var trackingInfo TrackingInfo
 	json.NewDecoder(resp.Body).Decode(&trackingInfo)
+	assert.Equal(t, "shippo", trackingInfo.Carrier)
+	assert.Equal(t, "SHIPPO_TRANSIT", trackingInfo.TrackingNumber)
 	assert.Equal(t, "San Francisco", trackingInfo.AddressFrom.City)
 	assert.Equal(t, "CA", trackingInfo.AddressFrom.State)
 	assert.Equal(t, "94103", trackingInfo.AddressFrom.Zip)
@@ -26,10 +28,6 @@ func TestServer_TrackingInfo(t *testing.T) {
 	assert.Equal(t, "IL", trackingInfo.AddressTo.State)
 	assert.Equal(t, "60611", trackingInfo.AddressTo.Zip)
 	assert.Equal(t, "US", trackingInfo.AddressTo.Country)
-	assert.Equal(t, "Priority Mail", trackingInfo.ServiceLevel.Name)
-	assert.Equal(t, "shippo_priority", trackingInfo.ServiceLevel.Token)
-	assert.Equal(t, "", trackingInfo.ServiceLevel.Terms)
-	assert.Equal(t, "TRANSIT", trackingInfo.TrackingStatus.Status)
 	assert.Equal(t, "Your shipment has departed from the origin.", trackingInfo.TrackingStatus.StatusDetails)
 	assert.Equal(t, "San Francisco", trackingInfo.TrackingStatus.Location.City)
 	assert.Equal(t, "CA", trackingInfo.TrackingStatus.Location.State)
