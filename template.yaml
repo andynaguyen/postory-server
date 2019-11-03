@@ -189,6 +189,24 @@ Resources:
       Statistic: Maximum
       TreatMissingData: notBreaching
 
+  SpendingAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: aws-spending-alarm
+      AlarmDescription: Alarm for AWS spending
+      AlarmActions:
+        - !Ref EmailTopic
+      Namespace: AWS/Billing
+      MetricName: EstimatedCharges
+      Dimensions:
+        - Name: Currency
+          Value: USD
+      Statistic: Maximum
+      Period: 21600
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+
   EmailTopic:
     Type: AWS::SNS::Topic
     Properties:
