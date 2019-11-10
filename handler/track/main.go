@@ -43,14 +43,19 @@ func handle(event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse
 	}
 
 	logger.Printf("tracking info: %+v\n", trackingInfo)
+
 	// If terminal status, archive the tracking info
-	if trackingInfo != nil && trackingInfo.TrackingStatus != nil {
+	if trackingInfo.TrackingStatus != nil {
 		isTerminal := trackingInfo.TrackingStatus.Status == models.TrackingStatusStatusDelivered ||
 			trackingInfo.TrackingStatus.Status == models.TrackingStatusStatusFailure ||
 			trackingInfo.TrackingStatus.Status == models.TrackingStatusStatusReturned
 		if isTerminal {
 			archive.PutInfo(*trackingInfo)
 		}
+	} else {
+		logger.Error().Err(err).Msg("tracking status is nil")
+		response.StatusCode = http.StatusInternalServerError
+		return response, err
 	}
 
 	bodyBytes, err := json.Marshal(trackingInfo)
